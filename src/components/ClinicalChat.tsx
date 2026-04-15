@@ -8,6 +8,7 @@ interface ChatMessage {
   content: string;
   citations?: { label: string; source: string }[];
   riskScore?: { label: string; level: string; score: number };
+  showProtocolButton?: boolean;
 }
 
 const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
