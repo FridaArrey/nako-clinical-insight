@@ -222,13 +222,35 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
   const handleSend = () => {
     if (!input.trim()) return;
     const userMsg: ChatMessage = { id: `user-${Date.now()}`, role: "user", content: input };
-    const aiMsg: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      role: "ai",
-      content: `Based on the NAKO cohort data and current AWMF guidelines, your query "${input}" would require cross-referencing with the baseline examination data (n=205,000). Please select a specific study module for detailed protocol guidance.`,
-      citations: [{ label: "NAKO Transfer Portal", source: "nako.de/transfer" }],
-    };
-    setMessages((prev) => [...prev, userMsg, aiMsg]);
+    const match = matchKeywordModule(input);
+
+    if (match) {
+      // Auto-select the relevant module
+      onSelectModule?.(match.module);
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: match.summary,
+        citations: [
+          { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
+          { label: match.guideline, source: "awmf.org" },
+          { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
+        ],
+        riskScore: match.module === "anthropometry"
+          ? { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 }
+          : undefined,
+        showProtocolButton: true,
+      };
+      setMessages((prev) => [...prev, userMsg, aiMsg]);
+    } else {
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: `Based on the NAKO cohort data and current AWMF guidelines, your query "${input}" would require cross-referencing with the baseline examination data (n=205,000). Please select a specific study module or try keywords like "cardiovascular", "metabolic risk", or "liver imaging" for targeted analysis.`,
+        citations: [{ label: "NAKO Transfer Portal", source: "nako.de/transfer" }],
+      };
+      setMessages((prev) => [...prev, userMsg, aiMsg]);
+    }
     setInput("");
   };
 
