@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Toaster } from "sonner";
 import { ResearchModules } from "@/components/ResearchModules";
 import { ClinicalChat } from "@/components/ClinicalChat";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
-  const biobankRef = React.useRef<HTMLDivElement>(null);
+  const biobankRef = useRef<HTMLDivElement>(null);
 
   const scrollToBiobank = () => {
     biobankRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
