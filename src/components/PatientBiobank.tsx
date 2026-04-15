@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -29,6 +30,8 @@ const statusBadgeClass: Record<string, string> = {
 };
 
 export function PatientBiobank() {
+  const [syncing, setSyncing] = useState(false);
+
   const handleFlag = () => {
     toast.success("Flagged for Longitudinal Follow-up", {
       description: `Participant ${baselineData.participantId} added to 5-year follow-up cohort.`,
@@ -36,9 +39,14 @@ export function PatientBiobank() {
   };
 
   const handleSync = () => {
-    toast.success("Synced to Hospital HIS", {
-      description: "Data transmitted to Charité SAP i.s.h.med via HL7 FHIR R4.",
-    });
+    if (syncing) return;
+    setSyncing(true);
+    setTimeout(() => {
+      setSyncing(false);
+      toast.success("Synced to Hospital HIS", {
+        description: "Data transmitted to Charité SAP i.s.h.med via HL7 FHIR R4.",
+      });
+    }, 1000);
   };
 
   return (
@@ -109,11 +117,18 @@ export function PatientBiobank() {
           </svg>
           Flag for Longitudinal Follow-up
         </Button>
-        <Button size="sm" className="w-full justify-start gap-2" onClick={handleSync}>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-          </svg>
-          Sync to Hospital HIS
+        <Button size="sm" className="w-full justify-start gap-2" onClick={handleSync} disabled={syncing}>
+          {syncing ? (
+            <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          )}
+          {syncing ? "Syncing..." : "Sync to Hospital HIS"}
         </Button>
       </div>
     </div>

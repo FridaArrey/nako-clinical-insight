@@ -1,14 +1,99 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { RiskScoreGauge } from "@/components/RiskScoreGauge";
 
 interface ChatMessage {
   id: string;
   role: "user" | "ai";
   content: string;
   citations?: { label: string; source: string }[];
+  riskScore?: { label: string; level: string; score: number };
 }
 
-const SOP_DATA: Record<string, ChatMessage> = {
+const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
+  metabolic: {
+    id: "sop-metabolic",
+    role: "ai",
+    content: `**Context-Aware Analysis — Metabolic Markers × Patient Biobank**
+
+**⚠ Abnormal Findings (NAKO Baseline Reference):**
+- **Fasting Glucose: 112 mg/dL** — above normal range (70–99 mg/dL), consistent with impaired fasting glucose (IFG)
+- **HbA1c: 5.9%** — prediabetic range (5.7–6.4%), per ADA/AWMF criteria
+- **BMI: 27.4 kg/m²** — overweight (WHO Class: Pre-Obese)
+- **Liver Fat (PDFF): 8.3%** — elevated (normal < 5.0%), Grade I hepatic steatosis
+- **Total Cholesterol: 218 mg/dL** — borderline high (desirable < 200 mg/dL)
+
+**Proposed AWMF-Aligned Clinical Pathway — MASLD:**
+
+1. **Confirm MASLD diagnosis** per AWMF S2k-Leitlinie (Reg.-Nr. 021-025):
+   - Hepatic steatosis (PDFF ≥ 5%) + ≥ 1 cardiometabolic risk factor → MASLD confirmed
+   - Patient meets criteria: PDFF 8.3% + IFG + elevated BMI
+
+2. **Risk stratification** using FIB-4 index:
+   - Calculate: (Age × AST) / (Platelets × √ALT)
+   - If FIB-4 < 1.3 → low risk, repeat in 3 years
+   - If FIB-4 ≥ 1.3 → transient elastography (FibroScan) referral
+
+3. **Therapeutic pathway:**
+   - **Lifestyle:** Mediterranean diet, 150 min/week moderate exercise (AWMF Grade A)
+   - **Weight target:** 7–10% body weight reduction over 12 months
+   - **Pharmacologic:** Consider Pioglitazone or GLP-1 RA if diabetes confirmed
+   - **Monitoring:** ALT, HbA1c, lipids q3 months; repeat PDFF at 12 months
+
+4. **Cardiovascular risk assessment:**
+   - SCORE2 calculation recommended given clustering of metabolic risk factors
+   - Current profile indicates Moderate-High cardiovascular risk`,
+    citations: [
+      { label: "AWMF S2k NAFLD/MASLD", source: "AWMF Reg.-Nr. 021-025" },
+      { label: "AWMF NVL Diabetes", source: "AWMF Reg.-Nr. nvl-001" },
+      { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
+      { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
+    ],
+    riskScore: { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 },
+  },
+  mri: {
+    id: "sop-mri",
+    role: "ai",
+    content: `**Context-Aware Analysis — MRI Incidental Findings × Patient Biobank**
+
+**⚠ Abnormal Findings (NAKO Baseline Reference):**
+- **Liver Fat (PDFF): 8.3%** — Steatosis Grade I (normal < 5.0%) detected on Dixon MRI
+- **BMI: 27.4 kg/m²** — overweight, correlated with hepatic fat accumulation
+- **Fasting Glucose: 112 mg/dL** — IFG, reinforcing metabolic-associated etiology
+
+**MRI-Specific Assessment:**
+
+1. **Liver (Dixon T1w VIBE):**
+   - PDFF 8.3% → Grade I steatosis confirmed
+   - Classification: IF-2 (Routine) per NAKO MRI Committee
+   - Action: Letter to participant + GP within 4 weeks
+
+2. **Correlation with MASLD pathway:**
+   - MRI-PDFF is the gold standard for hepatic fat quantification
+   - Patient's imaging confirms biochemical markers (elevated ALT, glucose)
+   - Recommend: Paired elastography for fibrosis staging (MRE or FibroScan)
+
+3. **Proposed AWMF-Aligned Clinical Pathway — MASLD (MRI-confirmed):**
+   - Hepatic steatosis confirmed by quantitative MRI (PDFF ≥ 5%)
+   - Initiate MASLD workup per AWMF S2k-Leitlinie (021-025)
+   - FIB-4 → if elevated → liver stiffness measurement
+   - Lifestyle intervention + metabolic risk factor management
+
+4. **Additional MRI findings to monitor:**
+   - Cardiac CINE SSFP: assess for LV hypertrophy given BP 134 mmHg
+   - Neuro T2w FLAIR: baseline for longitudinal comparison
+
+**Cardiovascular Risk Integration:**
+   - Combined metabolic + imaging profile → Moderate-High risk category
+   - SCORE2 formal calculation recommended`,
+    citations: [
+      { label: "AWMF S2k NAFLD/MASLD", source: "AWMF Reg.-Nr. 021-025" },
+      { label: "NAKO MRI Protocol", source: "nako.de/mri-protocol" },
+      { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
+      { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
+    ],
+    riskScore: { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 },
+  },
   anthropometry: {
     id: "sop-anthro",
     role: "ai",
@@ -30,63 +115,6 @@ const SOP_DATA: Record<string, ChatMessage> = {
       { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
     ],
   },
-  metabolic: {
-    id: "sop-metabolic",
-    role: "ai",
-    content: `**Standard Operating Procedure — Metabolic Markers Panel**
-
-**Objective:** Comprehensive metabolic risk stratification based on NAKO Level-2 laboratory protocol.
-
-**Specimen Requirements:**
-- Fasting venous blood (≥ 8h), EDTA and serum tubes
-- Processing within 2h, aliquoting per NAKO Biobank SOP
-
-**Analytes & Reference Ranges:**
-| Marker | Method | Reference |
-|--------|--------|-----------|
-| HbA1c | HPLC (Tosoh G11) | < 5.7% (normal) |
-| Fasting Glucose | Hexokinase | 70–99 mg/dL |
-| Total Cholesterol | Enzymatic | < 200 mg/dL |
-| LDL-C | Friedewald calc. | < 130 mg/dL |
-| ALT/GPT | IFCC, 37°C | ♂ < 50 U/L, ♀ < 35 U/L |
-
-**Clinical Decision Rule:** If fasting glucose ≥ 126 mg/dL OR HbA1c ≥ 6.5% → flag for diabetes screening per AWMF NVL Typ-2-Diabetes.`,
-    citations: [
-      { label: "AWMF NVL Diabetes", source: "AWMF Reg.-Nr. nvl-001" },
-      { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
-      { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
-    ],
-  },
-  mri: {
-    id: "sop-mri",
-    role: "ai",
-    content: `**Standard Operating Procedure — MRI Incidental Findings**
-
-**Objective:** Standardized management of incidental findings from NAKO 3T whole-body MRI protocol.
-
-**Acquisition Protocol:**
-- Scanner: Siemens MAGNETOM Skyra/Prisma 3T
-- Sequences: T1w VIBE Dixon (liver fat), CINE SSFP (cardiac), T2w FLAIR (neuro)
-- Duration: ~60 min total examination
-
-**Incidental Finding Classification (per NAKO MRI Committee):**
-| Category | Action | Timeline |
-|----------|--------|----------|
-| IF-1 (No action) | Document only | — |
-| IF-2 (Routine) | Letter to participant + GP | ≤ 4 weeks |
-| IF-3 (Urgent) | Direct physician contact | ≤ 48h |
-
-**Liver Fat Quantification:** Proton density fat fraction (PDFF) via Dixon method.
-- Normal: < 5.0%
-- Steatosis Grade I: 5–17%
-- Steatosis Grade II: 17–22%
-
-**Clinical Decision Rule:** IF-3 findings → immediate notification via NAKO study physician; referral to specialist per AWMF guidelines.`,
-    citations: [
-      { label: "AWMF S2k NAFLD", source: "AWMF Reg.-Nr. 021-025" },
-      { label: "NAKO MRI Protocol", source: "nako.de/mri-protocol" },
-    ],
-  },
 };
 
 interface ClinicalChatProps {
@@ -106,13 +134,17 @@ export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selectedModule && SOP_DATA[selectedModule]) {
+    if (selectedModule && CONTEXT_AWARE_SOP[selectedModule]) {
+      const moduleLabel =
+        selectedModule === "anthropometry" ? "Anthropometry & BP" :
+        selectedModule === "metabolic" ? "Metabolic Markers" :
+        "MRI Incidental Findings";
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
-        content: `Generate SOP summary for module: ${selectedModule === "anthropometry" ? "Anthropometry & BP" : selectedModule === "metabolic" ? "Metabolic Markers" : "MRI Incidental Findings"}`,
+        content: `Generate SOP summary for module: ${moduleLabel}`,
       };
-      const aiMsg = { ...SOP_DATA[selectedModule], id: `ai-${Date.now()}` };
+      const aiMsg = { ...CONTEXT_AWARE_SOP[selectedModule], id: `ai-${Date.now()}` };
       setMessages((prev) => [...prev, userMsg, aiMsg]);
     }
   }, [selectedModule]);
@@ -148,7 +180,7 @@ export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
             <h2 className="text-sm font-semibold text-foreground">AI-Assisted Protocol Generator</h2>
             <div className="flex items-center gap-1.5">
               <div className="pulse-dot" />
-              <span className="text-xs text-muted-foreground">Evidence-Based · AWMF-aligned</span>
+              <span className="text-xs text-muted-foreground">Evidence-Based · AWMF-aligned · Context-Aware</span>
             </div>
           </div>
         </div>
@@ -171,11 +203,18 @@ export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
                     if (line.match(/^\d+\./)) {
                       return <p key={i} className="pl-2 text-foreground">{line}</p>;
                     }
-                    if (line.startsWith("- ")) {
+                    if (line.startsWith("- ") || line.startsWith("   - ")) {
                       return <p key={i} className="pl-3 text-foreground">{line}</p>;
                     }
                     return line ? <p key={i} className="text-foreground">{line}</p> : <div key={i} className="h-1" />;
                   })}
+                  {msg.riskScore && (
+                    <RiskScoreGauge
+                      label={msg.riskScore.label}
+                      level={msg.riskScore.level}
+                      score={msg.riskScore.score}
+                    />
+                  )}
                   {msg.citations && msg.citations.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2 border-t pt-2">
                       {msg.citations.map((c, i) => (
