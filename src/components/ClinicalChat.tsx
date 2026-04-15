@@ -324,7 +324,7 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
                       </svg>
                       View Protocol Details
                     </Button>
-                  )
+                  )}
                 </div>
               ) : (
                 <p>{msg.content}</p>
