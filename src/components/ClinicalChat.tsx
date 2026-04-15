@@ -8,6 +8,7 @@ interface ChatMessage {
   content: string;
   citations?: { label: string; source: string }[];
   riskScore?: { label: string; level: string; score: number };
+  showProtocolButton?: boolean;
 }
 
 const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
@@ -119,9 +120,74 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
 
 interface ClinicalChatProps {
   selectedModule: string | null;
+  onSelectModule?: (id: string) => void;
+  onScrollToBiobank?: () => void;
 }
 
-export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
+const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
+  {
+    keywords: ["cardiovascular", "heart", "cardiac", "blood pressure", "hypertension", "chd", "coronary"],
+    module: "anthropometry",
+    label: "Anthropometry & BP",
+    summary: `**NAKO Baseline Findings — Cardiovascular Profile**
+
+Based on the NAKO cohort (n=205,000, PMC9581448), the patient's cardiovascular markers show:
+- **Systolic BP: 134 mmHg** — Stage 1 hypertension (≥130 mmHg, ACC/AHA)
+- **BMI: 27.4 kg/m²** — overweight, associated with increased CV risk
+- **Heart Rate: 72 bpm** — within normal range
+
+**AWMF Guideline Reference:**
+- **S3-Leitlinie Nationale VersorgungsLeitlinie Chronische KHK** (AWMF Reg.-Nr. nvl-004)
+- Risk stratification via SCORE2 recommended for patients with clustering metabolic risk factors
+- Target BP < 130/80 mmHg per ESC/DGK guidelines for high-risk patients`,
+    guideline: "AWMF S3-Leitlinie NVL Chronische KHK (Reg.-Nr. nvl-004)",
+  },
+  {
+    keywords: ["metabolic", "diabetes", "glucose", "hba1c", "insulin", "metabolic risk", "prediabetes"],
+    module: "metabolic",
+    label: "Metabolic Markers",
+    summary: `**NAKO Baseline Findings — Metabolic Risk Profile**
+
+Based on the NAKO cohort (n=205,000, PMC9581448), the patient's metabolic markers show:
+- **Fasting Glucose: 112 mg/dL** — impaired fasting glucose (IFG), above normal (70–99 mg/dL)
+- **HbA1c: 5.9%** — prediabetic range (5.7–6.4%)
+- **BMI: 27.4 kg/m²** — overweight, compounding insulin resistance risk
+- **Liver Fat (PDFF): 8.3%** — elevated, suggesting MASLD
+
+**AWMF Guideline Reference:**
+- **NVL Typ-2-Diabetes** (AWMF Reg.-Nr. nvl-001)
+- Lifestyle intervention recommended as first-line for prediabetes
+- Annual HbA1c monitoring; OGTT if IFG persists`,
+    guideline: "AWMF NVL Typ-2-Diabetes (Reg.-Nr. nvl-001)",
+  },
+  {
+    keywords: ["mri", "imaging", "liver", "steatosis", "fatty liver", "masld", "nafld", "incidental"],
+    module: "mri",
+    label: "MRI Incidental Findings",
+    summary: `**NAKO Baseline Findings — MRI Imaging Profile**
+
+Based on the NAKO cohort MRI protocol (n=30,000 subset, PMC9581448):
+- **Liver Fat (PDFF): 8.3%** — Grade I steatosis (normal < 5.0%)
+- **Classification: IF-2** (Routine finding) per NAKO MRI Committee
+- **Correlated with metabolic markers:** IFG + elevated BMI reinforce MASLD etiology
+
+**AWMF Guideline Reference:**
+- **S2k-Leitlinie NAFLD/MASLD** (AWMF Reg.-Nr. 021-025)
+- MRI-PDFF is the gold standard for hepatic fat quantification
+- FIB-4 index calculation recommended for fibrosis risk stratification`,
+    guideline: "AWMF S2k-Leitlinie NAFLD/MASLD (Reg.-Nr. 021-025)",
+  },
+];
+
+function matchKeywordModule(input: string): typeof KEYWORD_MODULE_MAP[number] | null {
+  const lower = input.toLowerCase();
+  for (const entry of KEYWORD_MODULE_MAP) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) return entry;
+  }
+  return null;
+}
+
+export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank }: ClinicalChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -156,13 +222,35 @@ export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
   const handleSend = () => {
     if (!input.trim()) return;
     const userMsg: ChatMessage = { id: `user-${Date.now()}`, role: "user", content: input };
-    const aiMsg: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      role: "ai",
-      content: `Based on the NAKO cohort data and current AWMF guidelines, your query "${input}" would require cross-referencing with the baseline examination data (n=205,000). Please select a specific study module for detailed protocol guidance.`,
-      citations: [{ label: "NAKO Transfer Portal", source: "nako.de/transfer" }],
-    };
-    setMessages((prev) => [...prev, userMsg, aiMsg]);
+    const match = matchKeywordModule(input);
+
+    if (match) {
+      // Auto-select the relevant module
+      onSelectModule?.(match.module);
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: match.summary,
+        citations: [
+          { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
+          { label: match.guideline, source: "awmf.org" },
+          { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
+        ],
+        riskScore: match.module === "anthropometry"
+          ? { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 }
+          : undefined,
+        showProtocolButton: true,
+      };
+      setMessages((prev) => [...prev, userMsg, aiMsg]);
+    } else {
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: `Based on the NAKO cohort data and current AWMF guidelines, your query "${input}" would require cross-referencing with the baseline examination data (n=205,000). Please select a specific study module or try keywords like "cardiovascular", "metabolic risk", or "liver imaging" for targeted analysis.`,
+        citations: [{ label: "NAKO Transfer Portal", source: "nako.de/transfer" }],
+      };
+      setMessages((prev) => [...prev, userMsg, aiMsg]);
+    }
     setInput("");
   };
 
@@ -223,6 +311,19 @@ export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
                         </span>
                       ))}
                     </div>
+                  )}
+                  {msg.showProtocolButton && onScrollToBiobank && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
+                      onClick={onScrollToBiobank}
+                    >
+                      <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                      </svg>
+                      View Protocol Details
+                    </Button>
                   )}
                 </div>
               ) : (
