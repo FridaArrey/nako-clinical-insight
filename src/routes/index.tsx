@@ -17,6 +17,13 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const biobankRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToBiobank = () => {
+    biobankRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    biobankRef.current?.classList.add("ring-2", "ring-primary", "ring-offset-2");
+    setTimeout(() => biobankRef.current?.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 2000);
+  };
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -55,11 +62,11 @@ function Index() {
 
         {/* Center — Clinical AI Chat */}
         <main className="overflow-hidden bg-background">
-          <ClinicalChat selectedModule={selectedModule} />
+          <ClinicalChat selectedModule={selectedModule} onSelectModule={setSelectedModule} onScrollToBiobank={scrollToBiobank} />
         </main>
 
         {/* Right — Patient Biobank Profile */}
-        <aside className="border-l bg-card overflow-hidden">
+        <aside ref={biobankRef} className="border-l bg-card overflow-hidden transition-all duration-500">
           <PatientBiobank />
         </aside>
       </div>
