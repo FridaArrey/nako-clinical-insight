@@ -37,6 +37,8 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "NAKO Clinical Decision Support" },
+      { name: "twitter:description", content: "AI-assisted clinical decision support integrated with NAKO German National Cohort research standards" },
     ],
     links: [
       {
