@@ -119,9 +119,74 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
 
 interface ClinicalChatProps {
   selectedModule: string | null;
+  onSelectModule?: (id: string) => void;
+  onScrollToBiobank?: () => void;
 }
 
-export function ClinicalChat({ selectedModule }: ClinicalChatProps) {
+const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
+  {
+    keywords: ["cardiovascular", "heart", "cardiac", "blood pressure", "hypertension", "chd", "coronary"],
+    module: "anthropometry",
+    label: "Anthropometry & BP",
+    summary: `**NAKO Baseline Findings — Cardiovascular Profile**
+
+Based on the NAKO cohort (n=205,000, PMC9581448), the patient's cardiovascular markers show:
+- **Systolic BP: 134 mmHg** — Stage 1 hypertension (≥130 mmHg, ACC/AHA)
+- **BMI: 27.4 kg/m²** — overweight, associated with increased CV risk
+- **Heart Rate: 72 bpm** — within normal range
+
+**AWMF Guideline Reference:**
+- **S3-Leitlinie Nationale VersorgungsLeitlinie Chronische KHK** (AWMF Reg.-Nr. nvl-004)
+- Risk stratification via SCORE2 recommended for patients with clustering metabolic risk factors
+- Target BP < 130/80 mmHg per ESC/DGK guidelines for high-risk patients`,
+    guideline: "AWMF S3-Leitlinie NVL Chronische KHK (Reg.-Nr. nvl-004)",
+  },
+  {
+    keywords: ["metabolic", "diabetes", "glucose", "hba1c", "insulin", "metabolic risk", "prediabetes"],
+    module: "metabolic",
+    label: "Metabolic Markers",
+    summary: `**NAKO Baseline Findings — Metabolic Risk Profile**
+
+Based on the NAKO cohort (n=205,000, PMC9581448), the patient's metabolic markers show:
+- **Fasting Glucose: 112 mg/dL** — impaired fasting glucose (IFG), above normal (70–99 mg/dL)
+- **HbA1c: 5.9%** — prediabetic range (5.7–6.4%)
+- **BMI: 27.4 kg/m²** — overweight, compounding insulin resistance risk
+- **Liver Fat (PDFF): 8.3%** — elevated, suggesting MASLD
+
+**AWMF Guideline Reference:**
+- **NVL Typ-2-Diabetes** (AWMF Reg.-Nr. nvl-001)
+- Lifestyle intervention recommended as first-line for prediabetes
+- Annual HbA1c monitoring; OGTT if IFG persists`,
+    guideline: "AWMF NVL Typ-2-Diabetes (Reg.-Nr. nvl-001)",
+  },
+  {
+    keywords: ["mri", "imaging", "liver", "steatosis", "fatty liver", "masld", "nafld", "incidental"],
+    module: "mri",
+    label: "MRI Incidental Findings",
+    summary: `**NAKO Baseline Findings — MRI Imaging Profile**
+
+Based on the NAKO cohort MRI protocol (n=30,000 subset, PMC9581448):
+- **Liver Fat (PDFF): 8.3%** — Grade I steatosis (normal < 5.0%)
+- **Classification: IF-2** (Routine finding) per NAKO MRI Committee
+- **Correlated with metabolic markers:** IFG + elevated BMI reinforce MASLD etiology
+
+**AWMF Guideline Reference:**
+- **S2k-Leitlinie NAFLD/MASLD** (AWMF Reg.-Nr. 021-025)
+- MRI-PDFF is the gold standard for hepatic fat quantification
+- FIB-4 index calculation recommended for fibrosis risk stratification`,
+    guideline: "AWMF S2k-Leitlinie NAFLD/MASLD (Reg.-Nr. 021-025)",
+  },
+];
+
+function matchKeywordModule(input: string): typeof KEYWORD_MODULE_MAP[number] | null {
+  const lower = input.toLowerCase();
+  for (const entry of KEYWORD_MODULE_MAP) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) return entry;
+  }
+  return null;
+}
+
+export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank }: ClinicalChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
