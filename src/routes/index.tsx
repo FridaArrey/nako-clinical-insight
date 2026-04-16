@@ -5,6 +5,7 @@ import { ResearchModules } from "@/components/ResearchModules";
 import { ClinicalChat } from "@/components/ClinicalChat";
 import { PatientBiobank } from "@/components/PatientBiobank";
 import { ArztbriefPreview } from "@/components/ArztbriefPreview";
+import { QuantumAnalysis } from "@/components/QuantumAnalysis";
 
 export const Route = createFileRoute("/")({
   component: Index,
