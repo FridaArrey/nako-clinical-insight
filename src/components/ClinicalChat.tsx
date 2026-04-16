@@ -188,7 +188,7 @@ function matchKeywordModule(input: string): typeof KEYWORD_MODULE_MAP[number] | 
   return null;
 }
 
-export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank }: ClinicalChatProps) {
+export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank, onGenerateArztbrief }: ClinicalChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
