@@ -9,6 +9,7 @@ interface ChatMessage {
   citations?: { label: string; source: string }[];
   riskScore?: { label: string; level: string; score: number };
   showProtocolButton?: boolean;
+  showArztbriefButton?: boolean;
 }
 
 const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
@@ -51,6 +52,7 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
       { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
     ],
     riskScore: { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 },
+    showArztbriefButton: true,
   },
   mri: {
     id: "sop-mri",
@@ -94,6 +96,7 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
       { label: "PMC9581448", source: "doi:10.1007/s10654-022-00890-x" },
     ],
     riskScore: { label: "Cardiovascular Risk", level: "Moderate-High", score: 68 },
+    showArztbriefButton: true,
   },
   anthropometry: {
     id: "sop-anthro",
@@ -122,6 +125,7 @@ interface ClinicalChatProps {
   selectedModule: string | null;
   onSelectModule?: (id: string) => void;
   onScrollToBiobank?: () => void;
+  onGenerateArztbrief?: () => void;
 }
 
 const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
@@ -187,7 +191,7 @@ function matchKeywordModule(input: string): typeof KEYWORD_MODULE_MAP[number] | 
   return null;
 }
 
-export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank }: ClinicalChatProps) {
+export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank, onGenerateArztbrief }: ClinicalChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -323,6 +327,18 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                       </svg>
                       View Protocol Details
+                    </Button>
+                  )}
+                  {msg.showArztbriefButton && onGenerateArztbrief && (
+                    <Button
+                      size="sm"
+                      className="mt-2 gap-1.5"
+                      onClick={onGenerateArztbrief}
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
+                      Generate Referral Letter
                     </Button>
                   )}
                 </div>

@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { ResearchModules } from "@/components/ResearchModules";
 import { ClinicalChat } from "@/components/ClinicalChat";
 import { PatientBiobank } from "@/components/PatientBiobank";
+import { ArztbriefPreview } from "@/components/ArztbriefPreview";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const [showArztbrief, setShowArztbrief] = useState(false);
   const biobankRef = useRef<HTMLDivElement>(null);
 
   const scrollToBiobank = () => {
@@ -62,12 +64,21 @@ function Index() {
 
         {/* Center — Clinical AI Chat */}
         <main className="overflow-hidden bg-background">
-          <ClinicalChat selectedModule={selectedModule} onSelectModule={setSelectedModule} onScrollToBiobank={scrollToBiobank} />
+          <ClinicalChat
+            selectedModule={selectedModule}
+            onSelectModule={setSelectedModule}
+            onScrollToBiobank={scrollToBiobank}
+            onGenerateArztbrief={() => setShowArztbrief(true)}
+          />
         </main>
 
-        {/* Right — Patient Biobank Profile */}
+        {/* Right — Patient Biobank Profile or Arztbrief */}
         <aside ref={biobankRef} className="border-l bg-card overflow-hidden transition-all duration-500">
-          <PatientBiobank />
+          {showArztbrief ? (
+            <ArztbriefPreview onClose={() => setShowArztbrief(false)} />
+          ) : (
+            <PatientBiobank />
+          )}
         </aside>
       </div>
     </div>
