@@ -122,6 +122,7 @@ interface ClinicalChatProps {
   selectedModule: string | null;
   onSelectModule?: (id: string) => void;
   onScrollToBiobank?: () => void;
+  onGenerateArztbrief?: () => void;
 }
 
 const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
