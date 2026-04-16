@@ -20,6 +20,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [showArztbrief, setShowArztbrief] = useState(false);
+  const [showQuantum, setShowQuantum] = useState(false);
   const biobankRef = useRef<HTMLDivElement>(null);
 
   const scrollToBiobank = () => {
@@ -70,12 +71,15 @@ function Index() {
             onSelectModule={setSelectedModule}
             onScrollToBiobank={scrollToBiobank}
             onGenerateArztbrief={() => setShowArztbrief(true)}
+            onActivateQuantum={() => setShowQuantum(true)}
           />
         </main>
 
         {/* Right — Patient Biobank Profile or Arztbrief */}
         <aside ref={biobankRef} className="border-l bg-card overflow-hidden transition-all duration-500">
-          {showArztbrief ? (
+          {showQuantum ? (
+            <QuantumAnalysis onClose={() => setShowQuantum(false)} />
+          ) : showArztbrief ? (
             <ArztbriefPreview onClose={() => setShowArztbrief(false)} />
           ) : (
             <PatientBiobank />
