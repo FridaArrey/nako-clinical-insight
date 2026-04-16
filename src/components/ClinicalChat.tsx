@@ -10,6 +10,7 @@ interface ChatMessage {
   riskScore?: { label: string; level: string; score: number };
   showProtocolButton?: boolean;
   showArztbriefButton?: boolean;
+  showQuantumButton?: boolean;
 }
 
 const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
@@ -126,6 +127,7 @@ interface ClinicalChatProps {
   onSelectModule?: (id: string) => void;
   onScrollToBiobank?: () => void;
   onGenerateArztbrief?: () => void;
+  onActivateQuantum?: () => void;
 }
 
 const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
