@@ -239,6 +239,7 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
       const moduleLabel =
         selectedModule === "anthropometry" ? "Anthropometry & BP" :
         selectedModule === "metabolic" ? "Metabolic Markers" :
+        selectedModule === "quantum" ? "Quantum Analysis" :
         "MRI Incidental Findings";
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
