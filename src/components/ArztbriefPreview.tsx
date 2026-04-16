@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { TrendSparkline } from "./TrendSparkline";
 
 interface ArztbriefPreviewProps {
   onClose: () => void;
@@ -95,13 +96,23 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
                   <td className="py-1"><span className="clinical-badge clinical-badge-high">Steatose Gr. I</span></td>
                 </tr>
                 <tr className="border-b border-border/50">
-                  <td className="py-1 font-sans">Nüchternglukose</td>
+                  <td className="py-1 font-sans">
+                    <div className="flex items-center gap-2">
+                      Nüchternglukose
+                      <TrendSparkline values={[92, 102, 112]} />
+                    </div>
+                  </td>
                   <td className="py-1 font-semibold text-destructive">112 mg/dL</td>
                   <td className="py-1 text-muted-foreground">70–99 mg/dL</td>
                   <td className="py-1"><span className="clinical-badge clinical-badge-elevated">IFG</span></td>
                 </tr>
                 <tr className="border-b border-border/50">
-                  <td className="py-1 font-sans">HbA1c</td>
+                  <td className="py-1 font-sans">
+                    <div className="flex items-center gap-2">
+                      HbA1c
+                      <TrendSparkline values={[5.4, 5.6, 5.9]} />
+                    </div>
+                  </td>
                   <td className="py-1 font-semibold text-destructive">5.9%</td>
                   <td className="py-1 text-muted-foreground">&lt; 5.7%</td>
                   <td className="py-1"><span className="clinical-badge clinical-badge-elevated">Prädiabetes</span></td>
@@ -128,9 +139,16 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
             <p className="mb-1 text-[10px] text-muted-foreground">
               Formel: (Alter × AST) / (Thrombozyten × √ALT)
             </p>
-            <p className="mb-1 font-mono text-[10px]">
-              ({age} × {ast}) / ({plt} × √{alt}) = <span className="font-bold text-foreground">{fib4}</span>
+            <p className="mb-2 font-mono text-[10px]">
+              ({age} × {ast}) / ({plt} × √{alt}) =
             </p>
+            {/* Bold color-coded FIB-4 Badge */}
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md border px-3 py-1 text-sm font-bold shadow-sm clinical-badge-elevated">
+                FIB-4 = {fib4}
+              </span>
+              <span className="text-[10px] text-muted-foreground">· Intermediäres Risiko</span>
+            </div>
             <div className="mt-2 flex items-center gap-2">
               <div className="flex-1 rounded-full bg-muted h-2 overflow-hidden">
                 <div
