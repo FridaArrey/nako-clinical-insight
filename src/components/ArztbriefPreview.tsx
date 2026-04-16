@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TrendSparkline } from "./TrendSparkline";
+import { ScanLine, Cpu, Stethoscope, ShieldCheck } from "lucide-react";
 
 interface ArztbriefPreviewProps {
   onClose: () => void;
@@ -204,10 +205,58 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
             Wir bitten um Mitbeurteilung und freuen uns auf Ihren Befundbericht. Für Rückfragen stehen wir jederzeit zur Verfügung.
           </p>
 
-          <p className="mb-1">Mit kollegialen Grüßen,</p>
-          <p className="font-semibold">Dr. med. [Generiert durch CDSS]</p>
-          <p className="text-[10px] text-muted-foreground">Klinik für Innere Medizin – Hepatologie</p>
-          <p className="text-[10px] text-muted-foreground">Charité – Universitätsmedizin Berlin</p>
+          {/* QR Code Section */}
+          <div className="mb-4 rounded-md border border-dashed border-muted-foreground/30 bg-muted/30 p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-card border shadow-sm">
+                <ScanLine className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  DICOM Imaging Access
+                </p>
+                <p className="text-[11px] font-medium text-foreground">
+                  Scan for DICOM imaging access
+                </p>
+                <p className="text-[9px] text-muted-foreground">
+                  PACS-ID: CHR-2024-NAKO-048291 · Archival valid until 2034
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dual Signature Block */}
+          <div className="mb-4 grid grid-cols-2 gap-4 border-t pt-4">
+            {/* Attending Physician */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <Stethoscope className="h-3 w-3" />
+                <span className="uppercase tracking-wider font-semibold">Attending Physician</span>
+              </div>
+              <p className="text-[11px] font-semibold text-foreground">Prof. Dr. med. Klaus Müller</p>
+              <p className="text-[10px] text-muted-foreground">Klinik für Innere Medizin – Hepatologie</p>
+              <p className="text-[10px] text-muted-foreground">Charité – Universitätsmedizin Berlin</p>
+              <div className="flex items-center gap-1 mt-1">
+                <ShieldCheck className="h-3 w-3 text-clinical-success" />
+                <span className="text-[9px] text-clinical-success">Digitally signed · EBZ 892341</span>
+              </div>
+            </div>
+
+            {/* AI-Quality Assurance */}
+            <div className="space-y-1 border-l pl-4">
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <Cpu className="h-3 w-3" />
+                <span className="uppercase tracking-wider font-semibold">AI-Quality Assurance</span>
+              </div>
+              <p className="text-[11px] font-semibold text-foreground">NAKO-CDSS v2.4.1</p>
+              <p className="text-[10px] text-muted-foreground">Clinical Decision Support System</p>
+              <p className="text-[10px] text-muted-foreground">Validated against AWMF S2k 021-025</p>
+              <div className="flex items-center gap-1 mt-1">
+                <ShieldCheck className="h-3 w-3 text-clinical-success" />
+                <span className="text-[9px] text-clinical-success">Certified · ISO 13485 · MDR Class IIa</span>
+              </div>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="mt-4 border-t pt-2 text-[9px] text-muted-foreground">
