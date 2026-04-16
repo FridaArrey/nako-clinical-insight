@@ -120,6 +120,35 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
       { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
     ],
   },
+  quantum: {
+    id: "sop-quantum",
+    role: "ai",
+    content: `**Quantum-Enhanced Metabolic Risk Prediction Module**
+
+**Status:** Quantum-Ready Infrastructure (Classical Simulation Active)
+
+**Overview:**
+This module demonstrates the NAKO-CDSS quantum computing pipeline for complex multi-variable metabolic risk prediction. The system uses Quantinuum's Guppy language — a Pythonic DSL that compiles to Hugr IR (Hierarchical Unified Graph Representation).
+
+**Pipeline: Guppy → Hugr IR → TKET2 → QPU**
+
+1. **Feature Encoding:** Patient biomarkers (Glucose 112 mg/dL, HbA1c 5.9%, PDFF 8.3%, BMI 27.4) are amplitude-encoded into a 3-qubit register
+2. **Entanglement Layer:** Metabolic correlation pairs (glucose↔HbA1c, HbA1c↔liver fat) are captured via CX gates
+3. **Measurement:** Quantum state collapses to classical risk stratification
+
+**Why Quantum?**
+- Genomic folding simulations for polygenic risk scores require exponential state spaces
+- Classical GWAS analysis of NAKO's 205,000 participants × ~10⁶ SNPs is computationally bounded
+- Quantum amplitude estimation could accelerate multi-omics integration by orders of magnitude
+
+**Current MVP:** All computations run on classical simulation. The Guppy/Hugr architecture ensures seamless migration to quantum hardware when fault-tolerant QPUs become available.`,
+    citations: [
+      { label: "Quantinuum Guppy", source: "github.com/CQCL/guppylang" },
+      { label: "Hugr Spec", source: "github.com/CQCL/hugr" },
+      { label: "NAKO Genomics", source: "nako.de/wissenschaft" },
+    ],
+    showQuantumButton: true,
+  },
 };
 
 interface ClinicalChatProps {
