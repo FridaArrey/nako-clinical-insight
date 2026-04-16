@@ -10,6 +10,7 @@ interface ChatMessage {
   riskScore?: { label: string; level: string; score: number };
   showProtocolButton?: boolean;
   showArztbriefButton?: boolean;
+  showQuantumButton?: boolean;
 }
 
 const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
@@ -119,6 +120,35 @@ const CONTEXT_AWARE_SOP: Record<string, ChatMessage> = {
       { label: "NAKO Transfer Portal", source: "nako.de/transfer" },
     ],
   },
+  quantum: {
+    id: "sop-quantum",
+    role: "ai",
+    content: `**Quantum-Enhanced Metabolic Risk Prediction Module**
+
+**Status:** Quantum-Ready Infrastructure (Classical Simulation Active)
+
+**Overview:**
+This module demonstrates the NAKO-CDSS quantum computing pipeline for complex multi-variable metabolic risk prediction. The system uses Quantinuum's Guppy language — a Pythonic DSL that compiles to Hugr IR (Hierarchical Unified Graph Representation).
+
+**Pipeline: Guppy → Hugr IR → TKET2 → QPU**
+
+1. **Feature Encoding:** Patient biomarkers (Glucose 112 mg/dL, HbA1c 5.9%, PDFF 8.3%, BMI 27.4) are amplitude-encoded into a 3-qubit register
+2. **Entanglement Layer:** Metabolic correlation pairs (glucose↔HbA1c, HbA1c↔liver fat) are captured via CX gates
+3. **Measurement:** Quantum state collapses to classical risk stratification
+
+**Why Quantum?**
+- Genomic folding simulations for polygenic risk scores require exponential state spaces
+- Classical GWAS analysis of NAKO's 205,000 participants × ~10⁶ SNPs is computationally bounded
+- Quantum amplitude estimation could accelerate multi-omics integration by orders of magnitude
+
+**Current MVP:** All computations run on classical simulation. The Guppy/Hugr architecture ensures seamless migration to quantum hardware when fault-tolerant QPUs become available.`,
+    citations: [
+      { label: "Quantinuum Guppy", source: "github.com/CQCL/guppylang" },
+      { label: "Hugr Spec", source: "github.com/CQCL/hugr" },
+      { label: "NAKO Genomics", source: "nako.de/wissenschaft" },
+    ],
+    showQuantumButton: true,
+  },
 };
 
 interface ClinicalChatProps {
@@ -126,6 +156,7 @@ interface ClinicalChatProps {
   onSelectModule?: (id: string) => void;
   onScrollToBiobank?: () => void;
   onGenerateArztbrief?: () => void;
+  onActivateQuantum?: () => void;
 }
 
 const KEYWORD_MODULE_MAP: { keywords: string[]; module: string; label: string; summary: string; guideline: string }[] = [
@@ -191,7 +222,7 @@ function matchKeywordModule(input: string): typeof KEYWORD_MODULE_MAP[number] | 
   return null;
 }
 
-export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank, onGenerateArztbrief }: ClinicalChatProps) {
+export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank, onGenerateArztbrief, onActivateQuantum }: ClinicalChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -208,6 +239,7 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
       const moduleLabel =
         selectedModule === "anthropometry" ? "Anthropometry & BP" :
         selectedModule === "metabolic" ? "Metabolic Markers" :
+        selectedModule === "quantum" ? "Quantum Analysis" :
         "MRI Incidental Findings";
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -339,6 +371,19 @@ export function ClinicalChat({ selectedModule, onSelectModule, onScrollToBiobank
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                       </svg>
                       Generate Referral Letter
+                    </Button>
+                  )}
+                  {msg.showQuantumButton && onActivateQuantum && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 gap-1.5"
+                      onClick={onActivateQuantum}
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                      </svg>
+                      Open Quantum Code Editor
                     </Button>
                   )}
                 </div>

@@ -30,6 +30,13 @@ const modules: NakoModule[] = [
     variables: 24,
     status: "pending",
   },
+  {
+    id: "quantum",
+    title: "Quantum Analysis",
+    description: "Quantum-enhanced metabolic risk prediction via Guppy/Hugr IR pipeline (classical simulation)",
+    variables: 6,
+    status: "pending",
+  },
 ];
 
 interface ResearchModulesProps {
