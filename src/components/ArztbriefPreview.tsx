@@ -316,17 +316,56 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
       </div>
 
       {/* Actions */}
-      <div className="border-t p-3 flex gap-2">
-        <Button size="sm" className="flex-1 gap-1.5">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-3 0h.008v.008h-.008V12z" />
-          </svg>
-          Print / PDF
-        </Button>
-        <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={onClose}>
-          Back to Biobank
-        </Button>
+      <div className="border-t p-3 space-y-2">
+        {/* Pica sync status strip */}
+        {syncStage !== "idle" && (
+          <div className="rounded-md border bg-secondary/40 px-2.5 py-1.5 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="font-semibold text-primary">Pica Agent</span>
+              <span>›</span>
+              <StageStep label="Auth" active={syncStage === "auth"} done={["folder","upload","gmail","done"].includes(syncStage)} />
+              <span>·</span>
+              <StageStep label="Folder" active={syncStage === "folder"} done={["upload","gmail","done"].includes(syncStage)} />
+              <span>·</span>
+              <StageStep label="Upload" active={syncStage === "upload"} done={["gmail","done"].includes(syncStage)} />
+              <span>·</span>
+              <StageStep label="Gmail" active={syncStage === "gmail"} done={syncStage === "done"} />
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button size="sm" className="flex-1 gap-1.5">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-3 0h.008v.008h-.008V12z" />
+            </svg>
+            Print / PDF
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="flex-1 gap-1.5"
+            onClick={runPicaSync}
+            disabled={isSyncing}
+          >
+            {isSyncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Cloud className="h-3.5 w-3.5" />}
+            {isSyncing ? "Syncing…" : "Secure Cloud Sync"}
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={onClose}>
+            Back
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
+
+function StageStep({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1 ${active ? "text-primary font-semibold" : done ? "text-clinical-success" : "text-muted-foreground/60"}`}>
+      {done ? <Check className="h-2.5 w-2.5" /> : active ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <span className="h-1 w-1 rounded-full bg-current opacity-50" />}
+      {label}
+    </span>
+  );
+}
+
