@@ -1,12 +1,61 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TrendSparkline } from "./TrendSparkline";
-import { ScanLine, Cpu, Stethoscope, ShieldCheck } from "lucide-react";
+import { ScanLine, Cpu, Stethoscope, ShieldCheck, Cloud, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 
 interface ArztbriefPreviewProps {
   onClose: () => void;
 }
 
+type SyncStage = "idle" | "auth" | "folder" | "upload" | "gmail" | "done";
+
 export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
+  const [syncStage, setSyncStage] = useState<SyncStage>("idle");
+  const isSyncing = syncStage !== "idle" && syncStage !== "done";
+
+  const runPicaSync = async () => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const toastId = "pica-sync";
+
+    setSyncStage("auth");
+    toast.loading("Pica Agent: Authenticating with Google Workspace…", {
+      id: toastId,
+      description: "OAuth handshake · scopes: drive.file, gmail.compose",
+    });
+    await wait(900);
+
+    setSyncStage("folder");
+    toast.loading("Pica Agent: Creating folder 'NAKO_Clinical_Exports'…", {
+      id: toastId,
+      description: "Google Drive · parent: My Drive",
+    });
+    await wait(850);
+
+    setSyncStage("upload");
+    toast.loading("Pica Agent: Uploading Arztbrief_NAKO-SYN-048291.pdf…", {
+      id: toastId,
+      description: "File size: 142 KB · MIME: application/pdf",
+    });
+    await wait(950);
+
+    setSyncStage("gmail");
+    toast.loading("Pica Agent: Drafting Gmail referral with attachment…", {
+      id: toastId,
+      description: "To: gastro-referral@charite.de · Draft saved",
+    });
+    await wait(800);
+
+    setSyncStage("done");
+    toast.success("Pica Agent: Sync complete ✓", {
+      id: toastId,
+      description: "Drive folder created · PDF synced · Gmail draft ready",
+      duration: 5000,
+    });
+
+    setTimeout(() => setSyncStage("idle"), 3500);
+  };
+
   const today = new Date().toLocaleDateString("de-DE", {
     day: "2-digit",
     month: "2-digit",
