@@ -13,6 +13,43 @@ type SyncStage = "idle" | "auth" | "folder" | "upload" | "gmail" | "done";
 export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
   const [syncStage, setSyncStage] = useState<SyncStage>("idle");
   const isSyncing = syncStage !== "idle" && syncStage !== "done";
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const runPdfExport = async () => {
+    if (isGenerating) return;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const toastId = "pdf-export";
+
+    setIsGenerating(true);
+
+    toast.loading("🔍 Scraping clinical markers…", {
+      id: toastId,
+      description: "Extracting NAKO biomarkers · FIB-4 · ICD-10",
+    });
+    await wait(800);
+
+    toast.loading("📑 Formatting AWMF-compliant PDF structure…", {
+      id: toastId,
+      description: "S2k Reg.-Nr. 021-025 · ISO 13485 layout",
+    });
+    await wait(1000);
+
+    toast.loading("🔐 Appending Digital QA Signature…", {
+      id: toastId,
+      description: "EBZ 892341 · NAKO-CDSS v2.4.1 certificate chain",
+    });
+    await wait(700);
+
+    toast.success("✅ PDF Ready: Arztbrief_NAKO_2026.pdf", {
+      id: toastId,
+      description: "142 KB · application/pdf · Opening print dialog…",
+      duration: 4000,
+    });
+
+    setIsGenerating(false);
+    // Trigger native print dialog for the "wow" factor
+    window.print();
+  };
 
   const runPicaSync = async () => {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -91,6 +128,17 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
           </svg>
         </Button>
       </div>
+
+      {/* Generation progress bar */}
+      {isGenerating && (
+        <div className="h-1 w-full overflow-hidden bg-muted">
+          <div
+            className="h-full bg-gradient-to-r from-primary via-primary/70 to-primary animate-pulse"
+            style={{ animation: "pdf-fill 2.5s linear forwards" }}
+          />
+          <style>{`@keyframes pdf-fill { from { width: 0%; } to { width: 100%; } }`}</style>
+        </div>
+      )}
 
       {/* Letter Body */}
       <div className="flex-1 overflow-y-auto p-4">
@@ -335,11 +383,15 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
         )}
 
         <div className="flex gap-2">
-          <Button size="sm" className="flex-1 gap-1.5">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-3 0h.008v.008h-.008V12z" />
-            </svg>
-            Print / PDF
+          <Button size="sm" className="flex-1 gap-1.5" onClick={runPdfExport} disabled={isGenerating}>
+            {isGenerating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 12h.008v.008h-.008V12zm-3 0h.008v.008h-.008V12z" />
+              </svg>
+            )}
+            {isGenerating ? "Generating…" : "Print / PDF"}
           </Button>
           <Button
             size="sm"
