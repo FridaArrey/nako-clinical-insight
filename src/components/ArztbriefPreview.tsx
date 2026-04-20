@@ -129,6 +129,17 @@ export function ArztbriefPreview({ onClose }: ArztbriefPreviewProps) {
         </Button>
       </div>
 
+      {/* Generation progress bar */}
+      {isGenerating && (
+        <div className="h-1 w-full overflow-hidden bg-muted">
+          <div
+            className="h-full bg-gradient-to-r from-primary via-primary/70 to-primary animate-pulse"
+            style={{ animation: "pdf-fill 2.5s linear forwards" }}
+          />
+          <style>{`@keyframes pdf-fill { from { width: 0%; } to { width: 100%; } }`}</style>
+        </div>
+      )}
+
       {/* Letter Body */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="arztbrief-page rounded-md border bg-card p-5 text-[11px] leading-relaxed text-foreground shadow-sm">
